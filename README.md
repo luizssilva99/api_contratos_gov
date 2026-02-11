@@ -1,57 +1,132 @@
-# API Contratos Gov - Agente de Extração de Dados
+# 🏛️ API Contratos Gov - Agente de Extração de Dados
 
-Este projeto utiliza uma arquitetura de agente de 3 camadas para extrair e processar dados de APIs do governo brasileiro, especificamente do Portal da Transparência.
+Este projeto implementa uma arquitetura de agente inteligente de 3 camadas para extração, processamento e análise de dados governamentais do Portal da Transparência do Governo Federal.
 
-## 🏗 Arquitetura
+## 🏗 Arquitetura do Sistema
 
-O projeto segue a estrutura definida em `agente.md`:
+O projeto adota uma estrutura robusta baseada em **Diretivas**, **Orquestração** e **Execução**, conforme definido em `agente.md`:
 
-1.  **Diretivas (`directives/`)**: Instruções (SOPs) em Markdown que definem *o que* deve ser feito.
-2.  **Orquestração (Agente)**: O agente de IA lê as diretivas e decide quais scripts executar.
-3.  **Execução (`execution/`)**: Scripts Python determinísticos que realizam o trabalho pesado (extração de dados, processamento, etc.).
+1.  **📜 Diretivas (`directives/`)**:
+    *   SOPs (Procedimentos Operacionais Padrão) em Markdown.
+    *   Definem *o que* deve ser feito, inputs, outputs e regras de negócio.
+2.  **🧠 Orquestração (Agente de IA)**:
+    *   O agente lê as diretivas e determina o fluxo de execução.
+3.  **⚙️ Execução (`execution/`)**:
+    *   Scripts Python determinísticos e otimizados.
+    *   Responsáveis pela interação com APIs, tratamento de dados e geração de arquivos.
 
-## 🚀 Como Começar
+---
+
+## 🚀 Guia de Instalação
 
 ### Pré-requisitos
+*   **Python 3.8** ou superior.
+*   **Chave de API** do Portal da Transparência ([Obtenha aqui](https://www.portaldatransparencia.gov.br/api-de-dados)).
 
--   Python 3.8+
--   Chave de API do Portal da Transparência (cadastre-se em [portaldatransparencia.gov.br](https://www.portaldatransparencia.gov.br/api-de-dados))
+### 🐧 Instalação no Linux (Ubuntu/Debian)
 
-### Instalação
-
-1.  Clone o repositório.
-2.  Configure as variáveis de ambiente:
+1.  **Clone o repositório:**
     ```bash
-    cp .env.example .env  # Se houver um exemplo, ou crie manualmente
-    ```
-    Edite o arquivo `.env` e adicione sua chave de API:
-    ```env
-    PORTAL_TRANSPARENCIA_API_KEY=sua_chave_aqui
+    git clone https://github.com/luizssilva99/api_contratos_gov.git
+    cd api_contratos_gov
     ```
 
-### Uso
+2.  **Instale as dependências do sistema (opcional, mas recomendado):**
+    ```bash
+    sudo apt update
+    sudo apt install python3-pip python3-venv
+    ```
 
-Para executar a extração de dados dos Órgãos do SIAFI manualmente:
+3.  **Crie e ative um ambiente virtual:**
+    ```bash
+    python3 -m venv .venv
+    source .venv/bin/activate
+    ```
 
-```bash
-python3 execution/extract_orgaos_siafi.py --output .tmp/orgaos_siafi.csv
-```
+4.  **Instale os pacotes Python:**
+    ```bash
+    pip install requests
+    ```
 
-O script irá:
-1.  Ler a chave da API do arquivo `.env`.
-2.  Iterar por todas as páginas disponíveis na API.
-3.  Salvar os dados consolidados em `.tmp/orgaos_siafi.csv`.
+5.  **Configure o ambiente:**
+    *   Crie o arquivo `.env`:
+        ```bash
+        touch .env
+        ```
+    *   Adicione sua chave de API ao arquivo `.env`:
+        ```env
+        PORTAL_TRANSPARENCIA_API_KEY=sua_chave_aqui_sem_aspas
+        ```
 
-## 📂 Estrutura de Arquivos
+### 🪟 Instalação no Windows
 
-```
-├── directives/       # Procedimentos Operacionais Padrão (SOPs)
-├── execution/        # Scripts Python para tarefas específicas
-├── .tmp/             # Arquivos temporários e saídas de dados (não commitados)
-├── agente.md         # Definição da arquitetura do agente
-└── README.md         # Documentação do projeto
+1.  **Clone o repositório:**
+    *   Abra o **PowerShell** ou **Git Bash**.
+    ```bash
+    git clone https://github.com/luizssilva99/api_contratos_gov.git
+    cd api_contratos_gov
+    ```
+
+2.  **Crie e ative um ambiente virtual:**
+    ```powershell
+    python -m venv .venv
+    .\.venv\Scripts\Activate.ps1
+    ```
+    *   *Nota: Se houver erro de permissão, execute `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser` no PowerShell.*
+
+3.  **Instale os pacotes Python:**
+    ```powershell
+    pip install requests
+    ```
+
+4.  **Configure o ambiente:**
+    *   Crie um arquivo chamado `.env` na raiz do projeto.
+    *   Abra-o com o Bloco de Notas e adicione:
+        ```env
+        PORTAL_TRANSPARENCIA_API_KEY=sua_chave_aqui_sem_aspas
+        ```
+
+---
+
+## 🛠 Como Executar
+
+O projeto possui scripts específicos na pasta `execution/` para diferentes tipos de dados.
+
+### 1. Extração de Órgãos do SIAFI
+Extrai a lista completa de órgãos cadastrados no SIAFI.
+
+*   **Comando:**
+    ```bash
+    python execution/extract_orgaos_siafi.py --output .tmp/orgaos_siafi.csv
+    ```
+
+### 2. Extração de Contratos por Órgão
+Extrai todos os contratos de um órgão específico (Padrão: 20701 - IBAMA/RO).
+
+*   **Comando:**
+    ```bash
+    python execution/extract_contratos.py --orgao 20701 --output .tmp/contratos_20701.csv
+    ```
+    *   *Substitua `20701` pelo código do órgão desejado.*
+
+---
+
+## 📂 Estrutura de Diretórios
+
+```plaintext
+api_contratos_gov/
+├── directives/       # 📜 Instruções de trabalho (SOPs)
+│   ├── extract_orgaos_siafi.md
+│   └── extract_contratos_20701.md
+├── execution/        # ⚙️ Scripts de automação Python
+│   ├── extract_orgaos_siafi.py
+│   └── extract_contratos.py
+├── .tmp/             # 🗑️ Arquivos temporários (CSV, JSON) - Ignorados pelo Git
+├── .env              # 🔐 Chaves de API e Segredos - Ignorado pelo Git
+├── agente.md         # 🧠 Definição do comportamento do Agente
+└── README.md         # 📘 Documentação do Projeto
 ```
 
 ## 🛡 Licença
 
-[Inserir Licença Aqui]
+Este projeto é distribuído sob a licença MIT. Consulte o arquivo `LICENSE` para mais detalhes.
