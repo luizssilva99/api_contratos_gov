@@ -62,6 +62,16 @@ class ContractTransformer:
             if col in self.df.columns:
                 self.df[col] = pd.to_datetime(self.df[col], errors='coerce')
 
+        # Clean 'fundamentoLegal' column
+        if 'fundamentoLegal' in self.df.columns:
+            # Remove "Fundamento Legal:" prefix (case insensitive just in case) and strip whitespace
+            self.df['fundamentoLegal'] = self.df['fundamentoLegal'].astype(str).str.replace(r'^Fundamento Legal\s*:\s*', '', regex=True).str.strip()
+
+        # Clean 'objeto' column
+        if 'objeto' in self.df.columns:
+            # Remove "Objeto:" prefix and strip whitespace
+            self.df['objeto'] = self.df['objeto'].astype(str).str.replace(r'^Objeto\s*:\s*', '', regex=True).str.strip()
+
         # Numeric columns
         num_cols = ['valorInicialCompra', 'valorFinalCompra']
         for col in num_cols:
