@@ -470,30 +470,58 @@ with tab2:
         
         # Rename columns to match Dashboard UI (Friendly Names)
         column_renames = {
+            # Valores e Datas
             'valorInicialCompra': 'Valor Inicial',
             'valorFinalCompra': 'Valor Final',
-            'dataAssinatura': 'Data Assinatura',
-            'dataInicioVigencia': 'Início Vigência',
-            'dataFimVigencia': 'Fim Vigência',
-            'dataPublicacaoDOU': 'Publicação DOU',
-            'ano_assinatura': 'Ano Assinatura',
-            'situacaoContrato': 'Situação',
-            'modalidadeCompra': 'Modalidade',
-            'uf_gestora': 'UF',
-            'tipo_contrato': 'Tipo Contrato',
-            'nome_fornecedor': 'Fornecedor',
-            'objeto': 'Objeto',
-            'ug_codigo': 'UG Código',
-            'ug_nome': 'Unidade Gestora',
-            'ug_poder': 'Poder',
-            'ug_orgao_vinculado': 'Órgão Vinculado',
-            'ug_orgao_maximo': 'Órgão Máximo',
+            'dataAssinatura': 'Data de Assinatura',
+            'dataInicioVigencia': 'Início da Vigência',
+            'dataFimVigencia': 'Fim da Vigência',
+            'dataPublicacaoDOU': 'Publicação no DOU',
+            'ano_assinatura': 'Ano de Assinatura',
+            
+            # Informações do Contrato
+            'id': 'ID do Contrato',
+            'numero': 'Número do Contrato',
+            'numeroProcesso': 'Número do Processo',
+            'situacaoContrato': 'Situação do Contrato',
+            'modalidadeCompra': 'Modalidade de Compra',
+            'tipo_contrato': 'Tipo de Contrato',
+            'objeto': 'Objeto do Contrato',
+            'fundamentoLegal': 'Fundamento Legal',
+            
+            # Informações da Compra
+            'compra_numero': 'Número da Compra',
             'compra_objeto': 'Objeto da Compra',
-            'ugc_codigo': 'UG Compras Código',
+            'compra_numeroProcesso': 'Processo da Compra',
+            'compra_contatoResponsavel': 'Contato Responsável',
+            
+            # Fornecedor
+            'fornecedor_id': 'ID do Fornecedor',
+            'fornecedor_cpfFormatado': 'CPF do Fornecedor',
+            'fornecedor_cnpjFormatado': 'CNPJ do Fornecedor',
+            'fornecedor_numeroInscricaoSocial': 'Inscrição Social',
+            'fornecedor_nome': 'Nome do Fornecedor',
+            'fornecedor_razaoSocialReceita': 'Razão Social',
+            'fornecedor_nomeFantasiaReceita': 'Nome Fantasia',
+            'fornecedor_tipo': 'Tipo de Fornecedor',
+            'nome_fornecedor': 'Fornecedor',
+            
+            # Unidade Gestora
+            'ug_codigo': 'Código da UG',
+            'ug_nome': 'Unidade Gestora',
+            'ug_poder': 'Poder (UG)',
+            'ug_orgao_vinculado': 'Órgão Vinculado (UG)',
+            'ug_orgao_maximo': 'Órgão Máximo (UG)',
+            
+            # Unidade Gestora de Compras
+            'ugc_codigo': 'Código da UG Compras',
             'ugc_nome': 'UG Compras',
-            'ugc_poder': 'Poder Compras',
-            'ugc_orgao_vinculado': 'Órgão Vinc. Compras',
-            'ugc_orgao_maximo': 'Órgão Máximo Compras'
+            'ugc_poder': 'Poder (UG Compras)',
+            'ugc_orgao_vinculado': 'Órgão Vinculado (UG Compras)',
+            'ugc_orgao_maximo': 'Órgão Máximo (UG Compras)',
+            
+            # Localização
+            'uf_gestora': 'UF'
         }
         export_df = export_df.rename(columns=column_renames)
         
@@ -539,19 +567,54 @@ with tab2:
         display_df = filtered_df.iloc[start_idx:end_idx].drop(columns=cols_to_hide, errors='ignore')
 
         column_config = {
+            # Valores
             "valorInicialCompra": st.column_config.NumberColumn("Valor Inicial", format="R$ %.2f"),
-             "valorFinalCompra": st.column_config.NumberColumn("Valor Final", format="R$ %.2f"),
-             "ug_codigo": st.column_config.TextColumn("Cód. UG"),
-             "ug_nome": st.column_config.TextColumn("Unidade Gestora", width="medium"),
-             "ug_poder": st.column_config.TextColumn("Poder"),
-             "ug_orgao_vinculado": st.column_config.TextColumn("Órgão Vinculado"),
-             "ug_orgao_maximo": st.column_config.TextColumn("Órgão Máximo"),
-             "compra_objeto": st.column_config.TextColumn("Objeto da Compra", width="medium"),
-             "ugc_codigo": st.column_config.TextColumn("Cód. UG Compras"),
-             "ugc_nome": st.column_config.TextColumn("UG Compras", width="medium"),
-             "ugc_poder": st.column_config.TextColumn("Poder Compras"),
-             "ugc_orgao_vinculado": st.column_config.TextColumn("Órgão Vinc. Compras"),
-             "ugc_orgao_maximo": st.column_config.TextColumn("Órgão Máximo Compras")
+            "valorFinalCompra": st.column_config.NumberColumn("Valor Final", format="R$ %.2f"),
+            
+            # Informações do Contrato
+            "id": st.column_config.TextColumn("ID do Contrato", width="small"),
+            "numero": st.column_config.TextColumn("Número do Contrato", width="small"),
+            "numeroProcesso": st.column_config.TextColumn("Número do Processo", width="medium"),
+            "situacaoContrato": st.column_config.TextColumn("Situação do Contrato", width="medium"),
+            "modalidadeCompra": st.column_config.TextColumn("Modalidade de Compra", width="medium"),
+            "tipo_contrato": st.column_config.TextColumn("Tipo de Contrato", width="medium"),
+            "objeto": st.column_config.TextColumn("Objeto do Contrato", width="large"),
+            "fundamentoLegal": st.column_config.TextColumn("Fundamento Legal", width="medium"),
+            
+            # Informações da Compra
+            "compra_numero": st.column_config.TextColumn("Número da Compra", width="small"),
+            "compra_objeto": st.column_config.TextColumn("Objeto da Compra", width="large"),
+            "compra_numeroProcesso": st.column_config.TextColumn("Processo da Compra", width="medium"),
+            "compra_contatoResponsavel": st.column_config.TextColumn("Contato Responsável", width="medium"),
+            
+            # Fornecedor
+            "fornecedor_id": st.column_config.TextColumn("ID do Fornecedor", width="small"),
+            "fornecedor_cpfFormatado": st.column_config.TextColumn("CPF do Fornecedor", width="small"),
+            "fornecedor_cnpjFormatado": st.column_config.TextColumn("CNPJ do Fornecedor", width="medium"),
+            "fornecedor_numeroInscricaoSocial": st.column_config.TextColumn("Inscrição Social", width="small"),
+            "fornecedor_nome": st.column_config.TextColumn("Nome do Fornecedor", width="large"),
+            "fornecedor_razaoSocialReceita": st.column_config.TextColumn("Razão Social", width="large"),
+            "fornecedor_nomeFantasiaReceita": st.column_config.TextColumn("Nome Fantasia", width="large"),
+            "fornecedor_tipo": st.column_config.TextColumn("Tipo de Fornecedor", width="small"),
+            "nome_fornecedor": st.column_config.TextColumn("Fornecedor", width="large"),
+            
+            # Unidade Gestora
+            "ug_codigo": st.column_config.TextColumn("Código da UG", width="small"),
+            "ug_nome": st.column_config.TextColumn("Unidade Gestora", width="large"),
+            "ug_poder": st.column_config.TextColumn("Poder (UG)", width="small"),
+            "ug_orgao_vinculado": st.column_config.TextColumn("Órgão Vinculado (UG)", width="medium"),
+            "ug_orgao_maximo": st.column_config.TextColumn("Órgão Máximo (UG)", width="medium"),
+            
+            # Unidade Gestora de Compras
+            "ugc_codigo": st.column_config.TextColumn("Código da UG Compras", width="small"),
+            "ugc_nome": st.column_config.TextColumn("UG Compras", width="large"),
+            "ugc_poder": st.column_config.TextColumn("Poder (UG Compras)", width="small"),
+            "ugc_orgao_vinculado": st.column_config.TextColumn("Órgão Vinculado (UG Compras)", width="medium"),
+            "ugc_orgao_maximo": st.column_config.TextColumn("Órgão Máximo (UG Compras)", width="medium"),
+            
+            # Localização
+            "uf_gestora": st.column_config.TextColumn("UF", width="small"),
+            "ano_assinatura": st.column_config.NumberColumn("Ano de Assinatura", format="%d")
         }
         
         for col, label in date_cols.items():
