@@ -100,14 +100,17 @@ Extrai a lista completa de órgãos cadastrados no SIAFI.
     python execution/extract_orgaos_siafi.py --output .tmp/orgaos_siafi.csv
     ```
 
-### 2. Extração de Contratos por Órgão
-Extrai todos os contratos de um órgão específico (Padrão: 20701 - IBAMA/RO).
-
-*   **Comando:**
+*   **Comando Básico:**
     ```bash
-    python execution/extract_contratos.py --orgao 20701 --output .tmp/contratos_20701.csv
+    python execution/extract_contratos.py --orgao 20701 --output-dir .tmp
     ```
-    *   *Substitua `20701` pelo código do órgão desejado.*
+*   **Comando com Filtro de Data (Recomendado):**
+    ```bash
+    python execution/extract_contratos.py --orgao 20701 --output-dir .tmp --data-inicial 01/01/2023 --data-final 31/12/2023
+    ```
+    *   **Resultados:**
+        *   `.tmp/contratos_20701_raw.csv`: Dados brutos da API.
+        *   `.tmp/contratos_20701_refined.csv`: Dados transformados e formatados (padrão Brasil).
 
 ---
 
