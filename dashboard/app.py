@@ -174,11 +174,11 @@ def render_chart_within_card(fig, title, height_px=300):
         .finui-card {{
             background-color: #FFFFFF;
             border-radius: 20px;
-            padding: 15px;
+            padding: 20px;
             box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05);
             box-sizing: border-box;
             height: {height_px}px;
-            overflow: hidden;
+            overflow: visible;
         }}
         .card-title {{
             color: #A3AED0;
@@ -392,9 +392,9 @@ with tab1:
                              color_discrete_sequence=['#4318FF', '#05CD99', '#EFF4FB'])
             # Tweak margins to fit card
             fig_pie.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', 
-                                  height=220, margin=dict(l=10, r=10, t=10, b=10),
+                                  height=220, margin=dict(l=20, r=20, t=20, b=40),
                                   font=dict(family="DM Sans"),
-                                  showlegend=True, legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5))
+                                  showlegend=True, legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5))
             render_chart_within_card(fig_pie, "Distribuição por Tipo", height_px=270)
         else:
             st.markdown(msg_no_data, unsafe_allow_html=True)
@@ -407,7 +407,7 @@ with tab1:
                              color_discrete_sequence=['#4318FF'])
             fig_bar.update_xaxes(tickangle=45)
             fig_bar.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                                  height=220, margin=dict(l=10, r=10, t=10, b=10),
+                                  height=220, margin=dict(l=40, r=20, t=20, b=60),
                                   font=dict(family="DM Sans"),
                                   xaxis_title=None, yaxis_title=None)
             render_chart_within_card(fig_bar, "Top 10 UFs", height_px=270)
@@ -431,7 +431,7 @@ with tab1:
         fig_area.update_xaxes(type='category')
         fig_area.update_yaxes(tickformat='d', nticks=5)
         fig_area.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                               height=180, margin=dict(l=10, r=10, t=10, b=20),
+                               height=180, margin=dict(l=50, r=20, t=30, b=30),
                                font=dict(family="DM Sans"),
                                xaxis_title=None, yaxis_title=None)
                                
