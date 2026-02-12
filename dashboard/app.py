@@ -177,7 +177,7 @@ def render_chart_within_card(fig, title, height_px=300):
             padding: 20px;
             box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05);
             box-sizing: border-box;
-            height: {height_px}px;
+            min-height: {height_px}px;
             overflow: visible;
         }}
         .card-title {{
@@ -392,10 +392,10 @@ with tab1:
                              color_discrete_sequence=['#4318FF', '#05CD99', '#EFF4FB'])
             # Tweak margins to fit card
             fig_pie.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', 
-                                  height=220, margin=dict(l=20, r=20, t=20, b=40),
+                                  height=350, margin=dict(l=20, r=20, t=20, b=60),
                                   font=dict(family="DM Sans"),
-                                  showlegend=True, legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5))
-            render_chart_within_card(fig_pie, "Distribuição por Tipo", height_px=270)
+                                  showlegend=True, legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5))
+            render_chart_within_card(fig_pie, "Distribuição por Tipo", height_px=420)
         else:
             st.markdown(msg_no_data, unsafe_allow_html=True)
 
@@ -407,10 +407,10 @@ with tab1:
                              color_discrete_sequence=['#4318FF'])
             fig_bar.update_xaxes(tickangle=45)
             fig_bar.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                                  height=220, margin=dict(l=40, r=20, t=20, b=60),
+                                  height=350, margin=dict(l=50, r=30, t=30, b=80),
                                   font=dict(family="DM Sans"),
                                   xaxis_title=None, yaxis_title=None)
-            render_chart_within_card(fig_bar, "Top 10 UFs", height_px=270)
+            render_chart_within_card(fig_bar, "Top 10 UFs", height_px=420)
         else:
             st.markdown(msg_no_data, unsafe_allow_html=True)
             
@@ -429,13 +429,13 @@ with tab1:
         
         fig_area.update_traces(textposition='top center') 
         fig_area.update_xaxes(type='category')
-        fig_area.update_yaxes(tickformat='d', nticks=5)
+        fig_area.update_yaxes(tickformat='d', nticks=6)
         fig_area.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                               height=180, margin=dict(l=50, r=20, t=30, b=30),
+                               height=300, margin=dict(l=60, r=30, t=40, b=50),
                                font=dict(family="DM Sans"),
                                xaxis_title=None, yaxis_title=None)
                                
-        render_chart_within_card(fig_area, "Evolução de Contratos (Histórico Completo)", height_px=220)
+        render_chart_within_card(fig_area, "Evolução de Contratos (Histórico Completo)", height_px=380)
 
 # --- Tab 2: Detailed Data (Pagination Optimized) ---
 with tab2:
@@ -562,7 +562,7 @@ with tab2:
             display_df, 
             use_container_width=True,
             column_config=column_config,
-            height=500 # Fixed table height
+            height=700 # Increased table height for better visibility
         )
     else:
         st.warning("Nenhum contrato encontrado.")
