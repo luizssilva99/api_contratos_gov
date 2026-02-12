@@ -1,6 +1,7 @@
 import pandas as pd
 import ast
 import logging
+import re
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -64,13 +65,13 @@ class ContractTransformer:
 
         # Clean 'fundamentoLegal' column
         if 'fundamentoLegal' in self.df.columns:
-            # Remove "Fundamento Legal:" prefix (case insensitive just in case) and strip whitespace
-            self.df['fundamentoLegal'] = self.df['fundamentoLegal'].astype(str).str.replace(r'^Fundamento Legal\s*:\s*', '', regex=True).str.strip()
+            # Remove "Fundamento Legal:" prefix (case-insensitive) and strip whitespace
+            self.df['fundamentoLegal'] = self.df['fundamentoLegal'].astype(str).str.replace(r'^\s*Fundamento Legal\s*:\s*', '', regex=True, flags=re.IGNORECASE).str.strip()
 
         # Clean 'objeto' column
         if 'objeto' in self.df.columns:
-            # Remove "Objeto:" prefix and strip whitespace
-            self.df['objeto'] = self.df['objeto'].astype(str).str.replace(r'^Objeto\s*:\s*', '', regex=True).str.strip()
+            # Remove "Objeto:" prefix (case-insensitive) and strip whitespace
+            self.df['objeto'] = self.df['objeto'].astype(str).str.replace(r'^\s*Objeto\s*:\s*', '', regex=True, flags=re.IGNORECASE).str.strip()
 
         # Numeric columns
         num_cols = ['valorInicialCompra', 'valorFinalCompra']
