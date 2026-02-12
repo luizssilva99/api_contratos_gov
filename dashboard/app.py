@@ -90,6 +90,8 @@ st.markdown("""
         font-weight: 700;
         margin-bottom: 5px;
         line-height: 1.2;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
     
     .card-icon {
@@ -403,6 +405,7 @@ with tab1:
             uf_counts.columns = ['UF', 'Contratos']
             fig_bar = px.bar(uf_counts, x='UF', y='Contratos', 
                              color_discrete_sequence=['#4318FF'])
+            fig_bar.update_xaxes(tickangle=45)
             fig_bar.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
                                   height=220, margin=dict(l=10, r=10, t=10, b=10),
                                   font=dict(family="DM Sans"),
@@ -425,10 +428,11 @@ with tab1:
                            text='Qtd') # Add labels
         
         fig_area.update_traces(textposition='top center') 
+        fig_area.update_xaxes(type='category')
+        fig_area.update_yaxes(tickformat='d', nticks=5)
         fig_area.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
                                height=180, margin=dict(l=10, r=10, t=10, b=20),
                                font=dict(family="DM Sans"),
-                               xaxis=dict(type='category'),
                                xaxis_title=None, yaxis_title=None)
                                
         render_chart_within_card(fig_area, "Evolução de Contratos (Histórico Completo)", height_px=220)
