@@ -1,135 +1,34 @@
-# 🏛️ API Contratos Gov - Agente de Extração de Dados
+# 🏛️ Dashboard de Contratos Governamentais (Projeto de Estudo)
 
-Este projeto implementa uma arquitetura de agente inteligente de 3 camadas para extração, processamento e análise de dados governamentais do Portal da Transparência do Governo Federal.
+Este projeto é um estudo de caso focado na extração, transformação e visualização de dados públicos provenientes do **Portal da Transparência do Governo Federal**. O objetivo principal é demonstrar a viabilidade de transformar dados brutos de APIs governamentais em informações estratégicas e visuais para análise de conformidade e gastos públicos.
 
-## 🏗 Arquitetura do Sistema
+## 🎯 Objetivo do Projeto
+O projeto foi desenvolvido para explorar técnicas de ETL (Extract, Transform, Load) e visualização de dados, utilizando uma arquitetura modular que garante a integridade e a padronização das informações de contratos públicos, especificamente focada em órgãos do governo (ex: IBAMA).
 
-O projeto adota uma estrutura robusta baseada em **Diretivas**, **Orquestração** e **Execução**, conforme definido em `agente.md`:
+## 🏗️ Arquitetura e Fluxo de Dados
+O sistema é estruturado em três estágios principais:
 
-1.  **📜 Diretivas (`directives/`)**:
-    *   SOPs (Procedimentos Operacionais Padrão) em Markdown.
-    *   Definem *o que* deve ser feito, inputs, outputs e regras de negócio.
-2.  **🧠 Orquestração (Agente de IA)**:
-    *   O agente lê as diretivas e determina o fluxo de execução.
-3.  **⚙️ Execução (`execution/`)**:
-    *   Scripts Python determinísticos e otimizados.
-    *   Responsáveis pela interação com APIs, tratamento de dados e geração de arquivos.
+1.  **Extração**: Consumo da API de Dados do Portal da Transparência, lidando com paginação e armazenamento de dados brutos (Raw Data) em conformidade com as restrições da API.
+2.  **Transformação (ETL)**: Uma camada robusta de processamento que:
+    *   Padroniza formatos de data (padrão brasileiro DD/MM/AAAA).
+    *   Converte valores monetários para a moeda local (BRL).
+    *   "Achata" (Flatten) estruturas JSON complexas, transformando dados aninhados (Unidade Gestora, Fornecedores) em colunas relacionais.
+    *   Classifica automaticamente os contratos entre "Aquisição de Bens" e "Prestação de Serviços" através de análise de texto.
+3.  **Visualização**: Um dashboard interativo desenvolvido em Streamlit que oferece uma visão gerencial e detalhada dos dados processados.
 
----
+## 📊 Principais Funcionalidades do Dashboard
+*   **Visão Geral Estratégica**: KPIs em tempo real mostrando o valor total contratado, volume de contratos e distribuição por tipo.
+*   **Análise Temporal**: Gráficos de evolução histórica que permitem visualizar tendências de gastos ao longo dos anos.
+*   **Filtros Inteligentes**: Capacidade de filtrar por estado (UF), fornecedor, modalidade de contratação e status.
+*   **Dados Detalhados**: Uma tabela paginada com todas as informações tratadas, permitindo a exploração individual de cada contrato.
+*   **Exportação**: Ferramenta de exportação para CSV formatado, facilitando o uso dos dados tratados em outras ferramentas como Excel.
 
-## 🚀 Guia de Instalação
+## 🛠️ Tecnologias Utilizadas
+*   **Linguagem**: Python 3.11+
+*   **Manipulação de Dados**: Pandas
+*   **Visualização**: Streamlit e Plotly
+*   **Comunicação**: Requests (API HTTP)
+*   **Formatação**: Regex e Ast para tratamento de strings complexas
 
-### Pré-requisitos
-*   **Python 3.8** ou superior.
-*   **Chave de API** do Portal da Transparência ([Obtenha aqui](https://www.portaldatransparencia.gov.br/api-de-dados)).
-
-### 🐧 Instalação no Linux (Ubuntu/Debian)
-
-1.  **Clone o repositório:**
-    ```bash
-    git clone https://github.com/luizssilva99/api_contratos_gov.git
-    cd api_contratos_gov
-    ```
-
-2.  **Instale as dependências do sistema (opcional, mas recomendado):**
-    ```bash
-    sudo apt update
-    sudo apt install python3-pip python3-venv
-    ```
-
-3.  **Crie e ative um ambiente virtual:**
-    ```bash
-    python3 -m venv .venv
-    source .venv/bin/activate
-    ```
-
-4.  **Instale os pacotes Python:**
-    ```bash
-    pip install requests
-    ```
-
-5.  **Configure o ambiente:**
-    *   Crie o arquivo `.env`:
-        ```bash
-        touch .env
-        ```
-    *   Adicione sua chave de API ao arquivo `.env`:
-        ```env
-        PORTAL_TRANSPARENCIA_API_KEY=sua_chave_aqui_sem_aspas
-        ```
-
-### 🪟 Instalação no Windows
-
-1.  **Clone o repositório:**
-    *   Abra o **PowerShell** ou **Git Bash**.
-    ```bash
-    git clone https://github.com/luizssilva99/api_contratos_gov.git
-    cd api_contratos_gov
-    ```
-
-2.  **Crie e ative um ambiente virtual:**
-    ```powershell
-    python -m venv .venv
-    .\.venv\Scripts\Activate.ps1
-    ```
-    *   *Nota: Se houver erro de permissão, execute `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser` no PowerShell.*
-
-3.  **Instale os pacotes Python:**
-    ```powershell
-    pip install requests
-    ```
-
-4.  **Configure o ambiente:**
-    *   Crie um arquivo chamado `.env` na raiz do projeto.
-    *   Abra-o com o Bloco de Notas e adicione:
-        ```env
-        PORTAL_TRANSPARENCIA_API_KEY=sua_chave_aqui_sem_aspas
-        ```
-
----
-
-## 🛠 Como Executar
-
-O projeto possui scripts específicos na pasta `execution/` para diferentes tipos de dados.
-
-### 1. Extração de Órgãos do SIAFI
-Extrai a lista completa de órgãos cadastrados no SIAFI.
-
-*   **Comando:**
-    ```bash
-    python execution/extract_orgaos_siafi.py --output .tmp/orgaos_siafi.csv
-    ```
-
-*   **Comando Básico:**
-    ```bash
-    python execution/extract_contratos.py --orgao 20701 --output-dir .tmp
-    ```
-*   **Comando com Filtro de Data (Recomendado):**
-    ```bash
-    python execution/extract_contratos.py --orgao 20701 --output-dir .tmp --data-inicial 01/01/2023 --data-final 31/12/2023
-    ```
-    *   **Resultados:**
-        *   `.tmp/contratos_20701_raw.csv`: Dados brutos da API.
-        *   `.tmp/contratos_20701_refined.csv`: Dados transformados e formatados (padrão Brasil).
-
----
-
-## 📂 Estrutura de Diretórios
-
-```plaintext
-api_contratos_gov/
-├── directives/       # 📜 Instruções de trabalho (SOPs)
-│   ├── extract_orgaos_siafi.md
-│   └── extract_contratos_20701.md
-├── execution/        # ⚙️ Scripts de automação Python
-│   ├── extract_orgaos_siafi.py
-│   └── extract_contratos.py
-├── .tmp/             # 🗑️ Arquivos temporários (CSV, JSON) - Ignorados pelo Git
-├── .env              # 🔐 Chaves de API e Segredos - Ignorado pelo Git
-├── agente.md         # 🧠 Definição do comportamento do Agente
-└── README.md         # 📘 Documentação do Projeto
-```
-
-## 🛡 Licença
-
-Este projeto é distribuído sob a licença MIT. Consulte o arquivo `LICENSE` para mais detalhes.
+## 📒 Nota de Estudo
+Como este é um projeto educacional, ele prioriza a clareza do código e a separação de responsabilidades (Camada de Extração vs Camada de Transformação) em detrimento de uma interface de produção complexa. Os dados utilizados são reais e provenientes de fontes oficiais.
