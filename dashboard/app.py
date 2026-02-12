@@ -478,7 +478,18 @@ with tab2:
             'uf_gestora': 'UF',
             'tipo_contrato': 'Tipo Contrato',
             'nome_fornecedor': 'Fornecedor',
-            'objeto': 'Objeto'
+            'objeto': 'Objeto',
+            'ug_codigo': 'UG Código',
+            'ug_nome': 'Unidade Gestora',
+            'ug_poder': 'Poder',
+            'ug_orgao_vinculado': 'Órgão Vinculado',
+            'ug_orgao_maximo': 'Órgão Máximo',
+            'compra_objeto': 'Objeto da Compra',
+            'ugc_codigo': 'UG Compras Código',
+            'ugc_nome': 'UG Compras',
+            'ugc_poder': 'Poder Compras',
+            'ugc_orgao_vinculado': 'Órgão Vinc. Compras',
+            'ugc_orgao_maximo': 'Órgão Máximo Compras'
         }
         export_df = export_df.rename(columns=column_renames)
         
@@ -525,7 +536,18 @@ with tab2:
 
         column_config = {
             "valorInicialCompra": st.column_config.NumberColumn("Valor Inicial", format="R$ %.2f"),
-             "valorFinalCompra": st.column_config.NumberColumn("Valor Final", format="R$ %.2f")
+             "valorFinalCompra": st.column_config.NumberColumn("Valor Final", format="R$ %.2f"),
+             "ug_codigo": st.column_config.TextColumn("Cód. UG"),
+             "ug_nome": st.column_config.TextColumn("Unidade Gestora", width="medium"),
+             "ug_poder": st.column_config.TextColumn("Poder"),
+             "ug_orgao_vinculado": st.column_config.TextColumn("Órgão Vinculado"),
+             "ug_orgao_maximo": st.column_config.TextColumn("Órgão Máximo"),
+             "compra_objeto": st.column_config.TextColumn("Objeto da Compra", width="medium"),
+             "ugc_codigo": st.column_config.TextColumn("Cód. UG Compras"),
+             "ugc_nome": st.column_config.TextColumn("UG Compras", width="medium"),
+             "ugc_poder": st.column_config.TextColumn("Poder Compras"),
+             "ugc_orgao_vinculado": st.column_config.TextColumn("Órgão Vinc. Compras"),
+             "ugc_orgao_maximo": st.column_config.TextColumn("Órgão Máximo Compras")
         }
         
         for col, label in date_cols.items():

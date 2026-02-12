@@ -50,6 +50,32 @@ class ContractTransformer:
             fornecedor_data.columns = [f"fornecedor_{col}" for col in fornecedor_data.columns]
             self.df = pd.concat([self.df.drop('fornecedor', axis=1), fornecedor_data], axis=1)
 
+        # Process 'unidadeGestora'
+        if 'unidadeGestora' in self.df.columns:
+            ug_data = self.df['unidadeGestora'].apply(self._parse_dictionary_column)
+            
+            # Extract specific fields
+            self.df['ug_codigo'] = ug_data.apply(lambda x: x.get('codigo', ''))
+            self.df['ug_nome'] = ug_data.apply(lambda x: x.get('nome', ''))
+            self.df['ug_poder'] = ug_data.apply(lambda x: x.get('descricaoPoder', ''))
+            
+            # Extract linked organ names
+            self.df['ug_orgao_vinculado'] = ug_data.apply(lambda x: x.get('orgaoVinculado', {}).get('nome', ''))
+            self.df['ug_orgao_maximo'] = ug_data.apply(lambda x: x.get('orgaoMaximo', {}).get('nome', ''))
+            
+        # Process 'unidadeGestoraCompras'
+        if 'unidadeGestoraCompras' in self.df.columns:
+            ugc_data = self.df['unidadeGestoraCompras'].apply(self._parse_dictionary_column)
+            
+            # Extract specific fields
+            self.df['ugc_codigo'] = ugc_data.apply(lambda x: x.get('codigo', ''))
+            self.df['ugc_nome'] = ugc_data.apply(lambda x: x.get('nome', ''))
+            self.df['ugc_poder'] = ugc_data.apply(lambda x: x.get('descricaoPoder', ''))
+            
+            # Extract linked organ names
+            self.df['ugc_orgao_vinculado'] = ugc_data.apply(lambda x: x.get('orgaoVinculado', {}).get('nome', ''))
+            self.df['ugc_orgao_maximo'] = ugc_data.apply(lambda x: x.get('orgaoMaximo', {}).get('nome', ''))
+
     def clean_data(self):
         """Standardizes data types."""
         if self.df is None:
@@ -68,10 +94,28 @@ class ContractTransformer:
             # Remove "Fundamento Legal:" prefix (case-insensitive) and strip whitespace
             self.df['fundamentoLegal'] = self.df['fundamentoLegal'].astype(str).str.replace(r'^\s*Fundamento Legal\s*:\s*', '', regex=True, flags=re.IGNORECASE).str.strip()
 
+        def robust_objeto_clean(val):
+            if pd.isna(val): return ""
+            s = str(val).strip()
+            # 1. Remove "Objeto:" prefix
+            s = re.sub(r'^\s*Objeto\s*:\s*', '', s, flags=re.IGNORECASE).strip()
+            # 2. Remove modality prefix if present (e.g., "Pregão Eletrônico - ")
+            # Only if it's followed by a dash within the first 60 chars
+            match = re.match(r'^[^:]*?\-\s*', s)
+            if match and len(match.group(0)) < 60:
+                modality_keywords = ['pregão', 'inexigibilidade', 'dispensa', 'convite', 'tomada', 'concorrência']
+                prefix = match.group(0).lower()
+                if any(k in prefix for k in modality_keywords):
+                    s = s[len(match.group(0)):].strip()
+            return s
+
         # Clean 'objeto' column
         if 'objeto' in self.df.columns:
-            # Remove "Objeto:" prefix (case-insensitive) and strip whitespace
-            self.df['objeto'] = self.df['objeto'].astype(str).str.replace(r'^\s*Objeto\s*:\s*', '', regex=True, flags=re.IGNORECASE).str.strip()
+            self.df['objeto'] = self.df['objeto'].apply(robust_objeto_clean)
+
+        # Clean 'compra_objeto' column
+        if 'compra_objeto' in self.df.columns:
+            self.df['compra_objeto'] = self.df['compra_objeto'].apply(robust_objeto_clean)
 
         # Numeric columns
         num_cols = ['valorInicialCompra', 'valorFinalCompra']
@@ -141,18 +185,26 @@ class ContractTransformer:
             ug = str(row.get('unidadeGestora', ''))
             ug_compras = str(row.get('unidadeGestoraCompras', ''))
             
-            # Look for pattern like "/UF" at end of string
-            for val in [ug, ug_compras]:
-                if '/' in val:
-                    parts = val.split('/')
-                    if len(parts) > 1 and len(parts[-1]) == 2:
-                        return parts[-1].upper()
+        # 2. Extract UF from Unidade Gestora
+        def extract_uf(row):
+            # Use the flattened name which should contain the "/UF" pattern
+            ug_nome = str(row.get('ug_nome', ''))
             
-            # Fallback: specific organ logic (20701 is Headquarters mostly, but has regional units in text)
-            # The 'unidadeGestora' field often looks like "SUPERINTENDENCIA ESTADUAL/RR"
+            # Look for pattern like "/UF" at end of string
+            if '/' in ug_nome:
+                parts = ug_nome.split('/')
+                if len(parts) > 1:
+                    last_part = parts[-1].strip().upper()
+                    if len(last_part) == 2:
+                        return last_part
+            
             return 'N/A'
 
         self.df['uf_gestora'] = self.df.apply(extract_uf, axis=1)
+
+        # Cleanup: Drop original dictionary columns to keep refined CSV clean
+        cols_to_drop = ['unidadeGestora', 'unidadeGestoraCompras']
+        self.df = self.df.drop(columns=[c for c in cols_to_drop if c in self.df.columns], errors='ignore')
 
     def run_pipeline(self, output_path):
         """Executes the full transformation pipeline."""
