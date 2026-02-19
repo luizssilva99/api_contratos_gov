@@ -9,8 +9,11 @@ import time
 @st.cache_data
 def get_data_metadata(file_path=None):
     """Returns metadata about the data file (e.g., last modified date)."""
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    default_path = os.path.join(base_dir, '.tmp', 'contratos_20701_refined.csv')
+    # .../src/dashboard/utils.py -> .../src/dashboard -> .../src -> .../api_contratos_gov
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    root_dir = os.path.dirname(os.path.dirname(current_dir))
+    default_path = os.path.join(root_dir, 'data', 'processed', 'contratos_20701_refined.csv')
+    
     target_path = file_path if file_path else default_path
     
     if os.path.exists(target_path):
@@ -26,8 +29,10 @@ def load_data(file_path=None):
     """
     
     # Default to the refined file if no path provided or if generic path provided
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    default_path = os.path.join(base_dir, '.tmp', 'contratos_20701_refined.csv')
+    # .../src/dashboard/utils.py -> .../src/dashboard -> .../src -> .../api_contratos_gov
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    root_dir = os.path.dirname(os.path.dirname(current_dir))
+    default_path = os.path.join(root_dir, 'data', 'processed', 'contratos_20701_refined.csv')
     
     target_path = file_path if file_path else default_path
     

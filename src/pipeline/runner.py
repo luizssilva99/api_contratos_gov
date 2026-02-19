@@ -116,13 +116,22 @@ class PipelineRunner:
         raw_path = get_raw_contracts_path(self.orgao)
         
         success = extract_contracts(
-            orgao=self.orgao,
+            orgao_codigo=self.orgao,
             output_file=str(raw_path),
             data_inicial=self.data_inicial,
             data_final=self.data_final
         )
         
-        return raw_path if success else None
+        if not success:
+            logger.warning(f"Falha na extração de dados da API. Verificando existência de cache local em: {raw_path}")
+            if raw_path.exists():
+                logger.info("Cache encontrado! Prosseguindo com dados locais.")
+                return raw_path
+            else:
+                logger.error("Cache local não encontrado. Impossível continuar.")
+                return None
+        
+        return raw_path
     
     def get_execution_summary(self) -> dict:
         """

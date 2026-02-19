@@ -1,0 +1,252 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GovAnalytics - Análise de Contratos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link rel="stylesheet" href="{% static 'dashboard/css/style.css' %}">
+</head>
+
+<body>
+    <!-- HEADER -->
+    <header class="main-header">
+        <div class="header-left">
+            <div class="header-logo-icon">🏛️</div>
+            <div>
+                <div class="header-title">Análise de Contratos Governamentais</div>
+                <div class="header-subtitle">Painel de Monitoramento e Analytics</div>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="header-notification" title="Notificações">
+                <span>🔔</span>
+            </div>
+            <div class="header-user">
+                <div class="header-avatar">{{ user_initials }}</div>
+                <div class="header-user-info">
+                    <div class="header-user-name">{{ user_display_name }}</div>
+                    <div class="header-user-role">{{ user_department }}</div>
+                </div>
+                <a href="{% url 'logout' %}" class="header-logout-btn" title="Sair">⏻</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="app-layout">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <span class="sidebar-logo-icon">🏛️</span>
+                <span class="sidebar-logo-text">GovAnalytics</span>
+            </div>
+
+            <div class="sidebar-section-label">CLASSIFICAÇÃO DO CONTRATO</div>
+
+            <div class="filter-group">
+                <label class="filter-label">Tipo de Contrato</label>
+                <select id="filter-categoria" class="filter-select">
+                    <option value="">Todos os tipos</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Modalidade de Compra</label>
+                <select id="filter-departamento" class="filter-select">
+                    <option value="">Todas as modalidades</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Situação do Contrato</label>
+                <div id="status-chips-container" class="status-chips-container"></div>
+            </div>
+
+            <div class="sidebar-divider"></div>
+            <div class="sidebar-section-label">PERÍODO E ANO DE ASSINATURA</div>
+
+            <div class="filter-group">
+                <label class="filter-label">Ano de Assinatura</label>
+                <select id="filter-ano" class="filter-select" multiple></select>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Data Inicial da Assinatura</label>
+                <input type="date" id="filter-data-inicio" class="filter-input"
+                    title="Selecione a data mínima de assinatura do contrato">
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Data Final da Assinatura</label>
+                <input type="date" id="filter-data-fim" class="filter-input"
+                    title="Selecione a data máxima de assinatura do contrato">
+            </div>
+
+            <div class="sidebar-divider"></div>
+            <div class="sidebar-section-label">LOCALIZAÇÃO</div>
+
+            <div class="filter-group">
+                <label class="filter-label">UF da Unidade Gestora</label>
+                <select id="filter-uf" class="filter-select" multiple></select>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-footer-item">
+                    <span class="footer-dot active"></span>
+                    <span id="sidebar-total-registros">0 registros carregados</span>
+                </div>
+                <div class="sidebar-footer-item">
+                    <span class="footer-dot"></span>
+                    <span id="sidebar-update-time">Atualizado: {{ data_metadata }}</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <!-- Active Filters Bar -->
+            <div class="filters-bar" id="active-filters-bar">
+                <span class="filters-bar-icon">📋</span>
+                <span class="filters-bar-label">Mostrando todos os registros</span>
+            </div>
+
+            <!-- TABS -->
+            <div class="tabs-container">
+                <button class="tab-btn active" data-tab="visao-geral" onclick="switchTab('visao-geral')">
+                    📋 Visão Geral
+                </button>
+                <button class="tab-btn" data-tab="dados-detalhados" onclick="switchTab('dados-detalhados')">
+                    📁 Dados Detalhados
+                </button>
+            </div>
+
+            <!-- TAB 1: Visão Geral -->
+            <div class="tab-content active" id="tab-visao-geral">
+                <!-- KPI Cards -->
+                <div class="kpi-row">
+                    <div class="kpi-card" id="kpi-valor-total">
+                        <div class="kpi-header">
+                            <div class="kpi-icon">📊</div>
+                            <div class="kpi-badge neutral" id="kpi-badge-yoy">—</div>
+                        </div>
+                        <div class="kpi-label">Valor Total (R$)</div>
+                        <div class="kpi-value" id="kpi-valor-total-value">0,00</div>
+                        <div class="kpi-bar">
+                            <div class="kpi-bar-fill" style="width:100%"></div>
+                        </div>
+                    </div>
+                    <div class="kpi-card" id="kpi-contratos">
+                        <div class="kpi-header">
+                            <div class="kpi-icon">📄</div>
+                        </div>
+                        <div class="kpi-label">Contratos</div>
+                        <div class="kpi-value" id="kpi-contratos-value">0</div>
+                        <div class="kpi-bar">
+                            <div class="kpi-bar-fill" style="width:75%"></div>
+                        </div>
+                    </div>
+                    <div class="kpi-card" id="kpi-bens">
+                        <div class="kpi-header">
+                            <div class="kpi-icon">📦</div>
+                        </div>
+                        <div class="kpi-label">% Bens</div>
+                        <div class="kpi-value" id="kpi-bens-value">0%</div>
+                        <div class="kpi-bar">
+                            <div class="kpi-bar-fill" id="kpi-bens-bar" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div class="kpi-card" id="kpi-servicos">
+                        <div class="kpi-header">
+                            <div class="kpi-icon">🔧</div>
+                        </div>
+                        <div class="kpi-label">% Serviços</div>
+                        <div class="kpi-value" id="kpi-servicos-value">0%</div>
+                        <div class="kpi-bar">
+                            <div class="kpi-bar-fill" id="kpi-servicos-bar" style="width:0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="charts-row">
+                    <div class="chart-card">
+                        <div class="chart-title">Distribuição por Tipo</div>
+                        <div id="chart-donut"></div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-title">Top 5 UFs Gestoras</div>
+                        <div id="chart-uf"></div>
+                    </div>
+                </div>
+
+                <!-- Evolution Chart -->
+                <div class="chart-card full-width">
+                    <div class="chart-title">Evolução de Contratos por Ano</div>
+                    <div id="chart-evolution"></div>
+                </div>
+
+                <!-- Summary Table -->
+                <div class="table-card">
+                    <div class="table-header-row">
+                        <div class="chart-title">Tabela de Contratos</div>
+                        <button class="export-btn" onclick="exportCSV()">📥 Exportar CSV</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table" id="contracts-table">
+                            <thead>
+                                <tr>
+                                    <th title="Razão social ou nome do fornecedor contratado">Fornecedor</th>
+                                    <th title="Descrição resumida do objeto contratado">Objeto do Contrato</th>
+                                    <th title="Valor inicial da compra em reais (R$)">Valor Inicial (R$)</th>
+                                    <th title="Data em que o contrato foi assinado">Data de Assinatura</th>
+                                    <th title="Dias corridos restantes até o término da vigência do contrato">Dias p/
+                                        Fim da Vigência</th>
+                                    <th title="Situação atual do contrato">Situação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body"></tbody>
+                        </table>
+                    </div>
+                    <div class="pagination" id="pagination"></div>
+                </div>
+            </div>
+
+            <!-- TAB 2: Dados Detalhados -->
+            <div class="tab-content" id="tab-dados-detalhados">
+                <div class="table-card">
+                    <div class="table-header-row">
+                        <div class="chart-title">Dados Detalhados dos Contratos</div>
+                        <button class="export-btn" onclick="exportCSV()">📥 Exportar CSV</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table" id="detailed-table">
+                            <thead>
+                                <tr>
+                                    <th title="Número identificador do contrato">Nº do Contrato</th>
+                                    <th title="Razão social ou nome do fornecedor contratado">Fornecedor</th>
+                                    <th title="Descrição resumida do objeto contratado">Objeto do Contrato</th>
+                                    <th title="Valor inicial da compra em reais (R$)">Valor Inicial (R$)</th>
+                                    <th
+                                        title="Classificação do contrato: Aquisição de Bens, Prestação de Serviços, etc.">
+                                        Tipo de Contrato</th>
+                                    <th title="Modalidade de compra utilizada na licitação">Modalidade de Compra</th>
+                                    <th title="Unidade Federativa da unidade gestora responsável">UF Gestora</th>
+                                    <th title="Data em que o contrato foi assinado">Data de Assinatura</th>
+                                    <th title="Situação atual do contrato">Situação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detailed-table-body"></tbody>
+                        </table>
+                    </div>
+                    <div class="pagination" id="detailed-pagination"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{% static 'dashboard/js/dashboard.js' %}"></script>
+</body>
+
+</html>
