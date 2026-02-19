@@ -159,18 +159,15 @@ def api_data(request):
 
     # Table data (paginated)
     page = int(request.GET.get('page', 1))
-    per_page = int(request.GET.get('per_page', 10))
+    per_page = int(request.GET.get('per_page', 25))  # Default 25 as requested
     total_pages = max(1, math.ceil(total_contratos / per_page))
     page = min(page, total_pages)
 
     start_idx = (page - 1) * per_page
     end_idx = start_idx + per_page
 
-    table_cols = ['id', 'nome_fornecedor', 'objeto', 'valorInicialCompra',
-                  'dataAssinatura', 'dataFimVigencia', 'situacaoContrato', 'numero', 'tipo_contrato',
-                  'modalidadeCompra', 'uf_gestora', 'ano_assinatura']
-
-    available_cols = [c for c in table_cols if c in filtered_df.columns]
+    # Use ALL available columns for the table slice (for detailed view)
+    available_cols = list(filtered_df.columns)
     table_slice = filtered_df.iloc[start_idx:end_idx][available_cols].copy()
 
     # Calculate days until end of vigência before formatting dates
@@ -189,17 +186,39 @@ def api_data(request):
     else:
         dias_vigencia_list = [None] * len(table_slice)
 
+    # Calculate difference (Final - Initial)
+    diferenca_list = []
+    if 'valorFinalCompra' in table_slice.columns and 'valorInicialCompra' in table_slice.columns:
+        for idx, row in table_slice.iterrows():
+            try:
+                vi = row['valorInicialCompra']
+                vf = row['valorFinalCompra']
+                if pd.notnull(vi) and pd.notnull(vf):
+                    val_i = float(vi)
+                    val_f = float(vf)
+                    diff = val_f - val_i
+                    diferenca_list.append(diff if diff != 0 else None)
+                else:
+                    diferenca_list.append(None)
+            except Exception:
+                diferenca_list.append(None)
+    else:
+        diferenca_list = [None] * len(table_slice)
+
     # Format dates and values for JSON
-    for col in ['dataAssinatura', 'dataInicioVigencia', 'dataFimVigencia', 'dataPublicacaoDOU']:
+    date_cols = ['dataAssinatura', 'dataInicioVigencia', 'dataFimVigencia', 'dataPublicacaoDOU']
+    for col in date_cols:
         if col in table_slice.columns:
             table_slice[col] = table_slice[col].apply(
                 lambda x: x.strftime('%d/%m/%Y') if pd.notnull(x) else '-'
             )
 
     table_records = table_slice.fillna('-').to_dict('records')
-    # Add dias_vigencia to each record
+    # Add calculated fields to each record
     for i, rec in enumerate(table_records):
         rec['dias_vigencia'] = dias_vigencia_list[i]
+        rec['diferenca_valor'] = diferenca_list[i]
+
     # Ensure floats are serializable
     for rec in table_records:
         for k, v in rec.items():
@@ -250,6 +269,7 @@ def api_data(request):
         },
         'table': {
             'records': table_records,
+            'columns': available_cols,
             'page': page,
             'per_page': per_page,
             'total_pages': total_pages,
