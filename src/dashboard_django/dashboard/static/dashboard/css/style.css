@@ -20,7 +20,11 @@
     --header-height: 64px;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -692,7 +696,9 @@ body {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* ===== RESPONSIVE ===== */
@@ -706,12 +712,15 @@ body {
     .sidebar {
         display: none;
     }
+
     .main-content {
         margin-left: 0;
     }
+
     .charts-row {
         grid-template-columns: 1fr;
     }
+
     .kpi-row {
         grid-template-columns: 1fr 1fr;
     }
@@ -721,10 +730,60 @@ body {
     .kpi-row {
         grid-template-columns: 1fr;
     }
+
     .main-header {
         padding: 0 12px;
     }
+
     .header-user-info {
         display: none;
     }
+}
+
+/* ===== STICKY HEADER (Dados Detalhados) ===== */
+#tab-dados-detalhados .table-wrapper {
+    height: 600px;
+    /* Altura fixa para garantir scroll */
+    overflow: auto;
+    /* Scroll em ambas direções */
+    border: 1px solid var(--border-color);
+    /* Borda ao redor do frame */
+    border-radius: 8px;
+    /* Arredondar cantos */
+}
+
+#tab-dados-detalhados .data-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+}
+
+#tab-dados-detalhados .data-table th {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    /* Z-index alto */
+    background-color: #ffffff;
+    /* Fundo branco sólido */
+    box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
+    /* Sombra para separar */
+    border-bottom: 2px solid var(--border-color);
+}
+
+#tab-dados-detalhados .data-table td,
+#tab-visao-geral .data-table td {
+    white-space: normal;
+    /* Permitir quebra de linha */
+    word-wrap: break-word;
+    /* Quebrar palavras longas se necessário */
+    max-width: none;
+    /* Remover limite de largura global */
+    overflow: visible;
+    /* Mostrar todo o conteúdo */
+    text-overflow: clip;
+    /* Remover reticências */
+    vertical-align: top;
+    /* Alinhar ao topo para melhor leitura */
+    line-height: 1.4;
+    /* Espaçamento entre linhas */
 }
