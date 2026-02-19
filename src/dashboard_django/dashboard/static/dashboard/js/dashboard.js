@@ -3,9 +3,41 @@
 // State
 let currentPage = 1;
 let currentDetailedPage = 1;
-const perPage = 10;
+// const perPage = 25; // Removed in favor of dynamic per-tab limit
+let activeTab = 'visao-geral';
 let selectedStatuses = [];
 let exportData = [];
+
+// Column Configuration (Friendly Names & Tooltips)
+// Column Configuration (Friendly Names & Tooltips & Widths)
+const COLUMN_CONFIG = {
+    'id': { label: 'ID', title: 'Identificador único do registro', width: '60px' },
+    'numero': { label: 'Nº Contrato', title: 'Número do contrato', width: '120px' },
+    'numeroProcesso': { label: 'Nº Processo', title: 'Número do processo administrativo', width: '150px' },
+    'nome_fornecedor': { label: 'Fornecedor', title: 'Nome/Razão Social do fornecedor', width: '250px' },
+    'fornecedor_nome': { label: 'Fornecedor (Nome)', title: 'Nome do fornecedor', width: '250px' },
+    'objeto': { label: 'Objeto', title: 'Descrição do objeto contratado', width: '350px' },
+    'valorInicialCompra': { label: 'Valor Inicial (R$)', title: 'Valor inicial da contratação', width: '130px' },
+    'valorFinalCompra': { label: 'Valor Final (R$)', title: 'Valor final após aditivos', width: '130px' },
+    'diferenca_valor': { label: 'Diferença (R$)', title: 'Variação entre valor final e inicial', width: '130px' },
+    'dataAssinatura': { label: 'Data Assinatura', title: 'Data de assinatura do contrato', width: '110px' },
+    'dataInicioVigencia': { label: 'Início Vigência', title: 'Data de início da vigência', width: '110px' },
+    'dataFimVigencia': { label: 'Fim Vigência', title: 'Data de fim da vigência', width: '110px' },
+    'dias_vigencia': { label: 'Dias Restantes', title: 'Dias até o fim da vigência', width: '100px' },
+    'situacaoContrato': { label: 'Situação', title: 'Situação atual do contrato', width: '140px' },
+    'tipo_contrato': { label: 'Tipo', title: 'Classificação do contrato', width: '160px' },
+    'modalidadeCompra': { label: 'Modalidade', title: 'Modalidade de licitação/compra', width: '180px' },
+    'uf_gestora': { label: 'UF', title: 'Unidade Federativa Gestora', width: '60px' },
+    'ano_assinatura': { label: 'Ano', title: 'Ano de assinatura', width: '70px' },
+    'fundamentoLegal': { label: 'Fundamento Legal', title: 'Base legal da contratação', width: '200px' },
+    'uasg': { label: 'UASG', title: 'Código da Unidade Administrativa de Serviços Gerais', width: '90px' },
+    'dataPublicacaoDOU': { label: 'Publicação DOU', title: 'Data de publicação no Diário Oficial', width: '110px' },
+    'ug_nome': { label: 'Unidade Gestora', title: 'Nome da Unidade Gestora', width: '220px' },
+    'ug_orgao_vinculado': { label: 'Órgão Vinculado', title: 'Órgão superior vinculado', width: '220px' },
+    'ug_codigo': { label: 'Cód. UG', title: 'Código da Unidade Gestora', width: '100px' },
+    'fornecedor_cnpjFormatado': { label: 'CNPJ', title: 'CNPJ do fornecedor', width: '140px' },
+    'compra_numero': { label: 'Nº Compra', title: 'Número da compra', width: '120px' }
+};
 
 // ===== Init =====
 document.addEventListener('DOMContentLoaded', () => {
@@ -61,7 +93,8 @@ function buildQueryParams(page = 1) {
     }
 
     params.set('page', page);
-    params.set('per_page', perPage);
+    const pPage = (activeTab === 'dados-detalhados') ? 25 : 10;
+    params.set('per_page', pPage);
 
     return params.toString();
 }
@@ -401,6 +434,28 @@ function getStatusBadgeClass(status) {
     return 'other';
 }
 
+function formatCurrency(val) {
+    if (val === null || val === undefined || val === '') return '-';
+    const num = parseFloat(val);
+    if (isNaN(num)) return val;
+    return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function getDiferencaHtml(val) {
+    if (val === null || val === undefined || val === 0) {
+        return '<span style="color:#94A3B8;font-weight:500">—</span>';
+    }
+    const color = val > 0 ? '#EF4444' : '#22C55E'; // Vermelho se aumentou, Verde se diminuiu (economia)
+    // Val > 0 means Final > Initial (Start Low, End High -> Bad?)
+    // Context: "Valor Final Compra" vs "Valor Inicial". Increase might be additive.
+    // Let's use neutral or standard accounting.
+    // If it's a cost, increase is bad (red), decrease is good (green).
+    // Assuming context of public contracts.
+    const formatted = val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const sign = val > 0 ? '+' : '';
+    return `<span style="color:${color};font-weight:600">${sign}${formatted}</span>`;
+}
+
 // ===== Dias Vigência Color =====
 function getDiasVigenciaHtml(dias) {
     if (dias === null || dias === undefined) {
@@ -435,15 +490,18 @@ function updateTable(tableData) {
         tbody.innerHTML = '';
         tableData.records.forEach(row => {
             const statusClass = getStatusBadgeClass(row.situacaoContrato);
-            const valor = typeof row.valorInicialCompra === 'number'
-                ? row.valorInicialCompra.toLocaleString('pt-BR', { minimumFractionDigits: 2 })
-                : row.valorInicialCompra;
+            const valorIni = formatCurrency(row.valorInicialCompra);
+            const valorFim = formatCurrency(row.valorFinalCompra);
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td title="${row.nome_fornecedor || '-'}">${row.nome_fornecedor || '-'}</td>
-                <td title="${row.objeto || '-'}">${(row.objeto || '-').substring(0, 60)}${(row.objeto || '').length > 60 ? '...' : ''}</td>
-                <td>${valor}</td>
+                <td title="${row.objeto || '-'}">${row.objeto || '-'}</td>
+                <td>${valorIni}</td>
+                <td>${valorFim}</td>
+                <td>${getDiferencaHtml(row.diferenca_valor)}</td>
                 <td>${row.dataAssinatura || '-'}</td>
+                <td>${row.dataFimVigencia || '-'}</td>
                 <td>${getDiasVigenciaHtml(row.dias_vigencia)}</td>
                 <td><span class="status-badge ${statusClass}">${row.situacaoContrato || '-'}</span></td>
             `;
@@ -451,28 +509,44 @@ function updateTable(tableData) {
         });
     }
 
-    // Detailed table
+    // Detailed table (Dynamic Columns)
     if (detailedTbody) {
+        const thead = document.querySelector('#detailed-table thead');
+        const columns = tableData.columns || Object.keys(tableData.records[0] || {});
+
+        // Rebuild header
+        if (thead) {
+            let headerHtml = '<tr>';
+            columns.forEach(col => {
+                const config = COLUMN_CONFIG[col] || { label: col, title: col, width: '150px' };
+                headerHtml += `<th title="${config.title}" style="min-width: ${config.width}">${config.label}</th>`;
+            });
+            headerHtml += '</tr>';
+            thead.innerHTML = headerHtml;
+        }
+
         detailedTbody.innerHTML = '';
+        let detailedRows = ''; // Accumulate rows
         tableData.records.forEach(row => {
-            const statusClass = getStatusBadgeClass(row.situacaoContrato);
-            const valor = typeof row.valorInicialCompra === 'number'
-                ? row.valorInicialCompra.toLocaleString('pt-BR', { minimumFractionDigits: 2 })
-                : row.valorInicialCompra;
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${row.numero || '-'}</td>
-                <td title="${row.nome_fornecedor || '-'}">${row.nome_fornecedor || '-'}</td>
-                <td title="${row.objeto || '-'}">${(row.objeto || '-').substring(0, 50)}${(row.objeto || '').length > 50 ? '...' : ''}</td>
-                <td>${valor}</td>
-                <td>${row.tipo_contrato || '-'}</td>
-                <td>${row.modalidadeCompra || '-'}</td>
-                <td>${row.uf_gestora || '-'}</td>
-                <td>${row.dataAssinatura || '-'}</td>
-                <td><span class="status-badge ${statusClass}">${row.situacaoContrato || '-'}</span></td>
-            `;
-            detailedTbody.appendChild(tr);
+            let rowHtml = '<tr>';
+            columns.forEach(col => {
+                let val = row[col];
+                // Simple formatting for known types
+                if (typeof val === 'number') {
+                    // Heuristic for money columns
+                    if (col.toLowerCase().includes('valor') && !col.toLowerCase().includes('id')) {
+                        val = formatCurrency(val);
+                    } else {
+                        val = val.toString();
+                    }
+                }
+                if (val === null || val === undefined) val = '-';
+                rowHtml += `<td title="${val}">${val.toString().substring(0, 100)}${val.toString().length > 100 ? '...' : ''}</td>`;
+            });
+            rowHtml += '</tr>';
+            detailedRows += rowHtml;
         });
+        detailedTbody.innerHTML = detailedRows;
     }
 
     // Pagination (both tabs use same data)
@@ -500,13 +574,21 @@ function goToPage(page, isDetailed) {
 }
 
 // ===== Tabs =====
+// ===== Tabs =====
 function switchTab(tabName) {
+    if (activeTab === tabName) return;
+    activeTab = tabName;
+
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.tab === tabName);
     });
     document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.toggle('active', content.id === `tab-${tabName}`);
     });
+
+    // Reload data to respect new per_page limit (10 vs 25)
+    currentPage = 1;
+    fetchData(1);
 }
 
 // ===== Sidebar Footer =====
